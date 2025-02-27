@@ -39,7 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'academy',
-    'myuser'
+    'myuser',
 ]
 
 MIDDLEWARE = [
@@ -80,8 +80,6 @@ JAZZMIN_SETTINGS = {
     "login_logo": "your_logo.png",
     "copyright": "Academy © 2025",
 }
-
-
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
