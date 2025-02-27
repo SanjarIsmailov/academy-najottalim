@@ -31,6 +31,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -70,6 +71,16 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'config.wsgi.application'
+
+JAZZMIN_SETTINGS = {
+    "site_title": "Academy Admin",
+    "site_header": "Academy Dashboard",
+    "welcome_sign": "Welcome to Academy Admin Panel",
+    "site_brand": "Academy",
+    "login_logo": "your_logo.png",
+    "copyright": "Academy © 2025",
+}
+
 
 
 # Database
