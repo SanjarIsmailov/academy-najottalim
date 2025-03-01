@@ -9,19 +9,9 @@
         body {
             font-family: Arial, sans-serif;
             background-color: #f4f4f4;
-            margin: 0;
-            padding: 20px;
             text-align: center;
+            padding: 20px;
         }
-
-        h2 {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            max-width: 900px;
-            margin: auto;
-        }
-
         .container {
             max-width: 900px;
             margin: auto;
@@ -29,134 +19,46 @@
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            overflow-x: auto;
         }
-
-        select {
+        select, button {
             padding: 8px;
-            border: 1px solid #ccc;
+            margin: 5px;
             border-radius: 5px;
-            font-size: 14px;
+            cursor: pointer;
         }
-
-        /* Table Styling */
         table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
-            overflow-x: auto;
         }
-
         th, td {
-            padding: 12px;
+            padding: 10px;
             border: 1px solid #ddd;
             text-align: center;
-            white-space: nowrap; /* Prevents wrapping */
         }
-
-        th {
-            background-color: #007BFF;
+        .present { background: lightgreen; }
+        .absent { background: lightcoral; }
+        #startLessonBtn { background: green; color: white; }
+        #closeLessonBtn { background: red; color: white; display: none; }
+        .home-btn {
+            background: blue;
             color: white;
-            font-size: 14px;
-        }
-
-        td {
-            font-size: 14px;
-        }
-
-        /* Student name column - slightly wider */
-        td:first-child {
-            min-width: 150px;
-            text-align: left;
-            padding-left: 15px;
-        }
-
-        /* Attendance buttons */
-        .present, .absent {
-            padding: 8px 12px;
+            padding: 10px 15px;
             border-radius: 5px;
-            cursor: pointer;
-            border: none;
-            font-size: 16px;
-            width: 50px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s ease-in-out;
-        }
-
-        /* Colors for buttons */
-        .present {
-            background-color: green;
-            color: white;
-        }
-
-        .absent {
-            background-color: red;
-            color: white;
-        }
-
-        /* Hover effects */
-        .present:hover, .absent:hover {
-            opacity: 0.8;
-        }
-
-        /* Update button */
-        .update-btn {
-            background: linear-gradient(135deg, #007BFF, #0056b3);
-            color: white;
-            padding: 12px 25px;
-            font-weight: bold;
-            border: none;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.3s ease-in-out;
-            box-shadow: 0 4px 10px rgba(0, 91, 187, 0.5);
-            font-size: 16px;
-        }
-
-        .update-btn:hover {
-            background: linear-gradient(135deg, #0056b3, #003d80);
-            box-shadow: 0 6px 12px rgba(0, 91, 187, 0.7);
-        }
-
-        .update-btn:active {
-            transform: translateY(3px);
-            box-shadow: 0 2px 6px rgba(0, 91, 187, 0.9);
-        }
-
-        /* Responsive Design */
-        @media screen and (max-width: 768px) {
-            h2 {
-                font-size: 18px;
-            }
-
-            table {
-                font-size: 12px;
-            }
-
-            td:first-child {
-                min-width: 120px;
-            }
-
-            .present, .absent {
-                width: 40px;
-                height: 35px;
-                font-size: 14px;
-            }
+            text-decoration: none;
+            display: inline-block;
+            margin-bottom: 10px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2>Attendance
-            <button class="update-btn" onclick="saveAttendance()">Save</button>
-        </h2>
+        <a href="{% url 'home' %}" class="home-btn">Home</a>
+        <h2>Attendance</h2>
 
         <form method="GET">
-            <label for="group">Select Group:</label>
-            <select name="group_id" id="group" onchange="this.form.submit()">
+            <label>Select Group:</label>
+            <select name="group_id" onchange="this.form.submit()">
                 {% for group in groups %}
                     <option value="{{ group.id }}" {% if group.id == selected_group_id %}selected{% endif %}>
                         {{ group.name }}
@@ -165,11 +67,21 @@
             </select>
         </form>
 
+        <label>Select Lesson:</label>
+        <select id="lessonSelect">
+            {% for lesson in lessons|dictsort:"number" %}
+                <option value="{{ lesson.id }}">Lesson {{ lesson.number }}</option>
+            {% endfor %}
+        </select>
+
+        <button id="startLessonBtn">Start Lesson</button>
+        <button id="closeLessonBtn">Close Lesson</button>
+
         <table>
             <thead>
                 <tr>
-                    <th>Student Name</th>
-                    {% for lesson in lessons %}
+                    <th>Student</th>
+                    {% for lesson in lessons|dictsort:"number" %}
                         <th>Lesson {{ lesson.number }}</th>
                     {% endfor %}
                 </tr>
@@ -178,10 +90,13 @@
                 {% for student in students %}
                     <tr>
                         <td>{{ student.name }}</td>
-                        {% for lesson in lessons %}
+                        {% for lesson in lessons|dictsort:"number" %}
                             <td>
-                                <button type="button" onclick="toggleAttendance(this, {{ student.id }}, {{ lesson.id }})"
-                                    class="{% if attendance_data|get_item:student.id|get_item:lesson.id %}present{% else %}absent{% endif %}">
+                                <button
+                                    class="attendance-btn {% if attendance_data|get_item:student.id|get_item:lesson.id %}present{% else %}absent{% endif %}"
+                                    data-student-id="{{ student.id }}"
+                                    data-lesson-id="{{ lesson.id }}"
+                                    disabled>
                                     {% if attendance_data|get_item:student.id|get_item:lesson.id %}✔{% else %}✖{% endif %}
                                 </button>
                             </td>
@@ -193,43 +108,110 @@
     </div>
 
     <script>
-        let attendanceUpdates = {};
+document.addEventListener("DOMContentLoaded", function () {
+    const lessonSelect = document.getElementById("lessonSelect");
+    const startLessonBtn = document.getElementById("startLessonBtn");
+    const closeLessonBtn = document.getElementById("closeLessonBtn");
 
-        function toggleAttendance(button, studentId, lessonId) {
-            let present = button.classList.contains("present");
+    function getCsrfToken() {
+        return document.cookie.split('; ').find(row => row.startsWith('csrftoken='))?.split('=')[1];
+    }
 
-            if (present) {
-                button.classList.remove("present");
-                button.classList.add("absent");
-                button.innerHTML = "✖";
-                attendanceUpdates[`${studentId}-${lessonId}`] = false;
+    function toggleAttendance(button, studentId, lessonId) {
+        const isPresent = button.classList.contains("present");
+        const newStatus = !isPresent;
+
+        fetch("{% url 'academy:update_attendance' %}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": getCsrfToken(),
+            },
+            body: JSON.stringify({ [`${studentId}-${lessonId}`]: newStatus }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                button.classList.toggle("present", newStatus);
+                button.classList.toggle("absent", !newStatus);
+                button.textContent = newStatus ? "✔" : "✖";
             } else {
-                button.classList.remove("absent");
-                button.classList.add("present");
-                button.innerHTML = "✔";
-                attendanceUpdates[`${studentId}-${lessonId}`] = true;
+                alert("Error: " + data.error);
             }
-        }
+        })
+        .catch(error => console.error("Error:", error));
+    }
 
-        function saveAttendance() {
-            fetch(`/academy/update_attendance/`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRFToken": "{{ csrf_token }}"
-                },
-                body: JSON.stringify(attendanceUpdates)
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert("Attendance updated successfully!");
-                    attendanceUpdates = {}; // Clear updates after saving
-                } else {
-                    alert("Failed to update attendance.");
-                }
-            });
-        }
-    </script>
+    function updateAttendanceButtons(lessonId, enabled) {
+        document.querySelectorAll(".attendance-btn").forEach(button => {
+            if (button.getAttribute("data-lesson-id") === lessonId) {
+                button.disabled = !enabled;
+            } else {
+                button.disabled = true;
+            }
+        });
+    }
+
+    startLessonBtn.addEventListener("click", function () {
+        const selectedLessonId = lessonSelect.value;
+
+        fetch("{% url 'academy:start_lesson' %}", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "X-CSRFToken": getCsrfToken() },
+            body: JSON.stringify({ lesson_id: selectedLessonId }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                updateAttendanceButtons(selectedLessonId, true);
+                startLessonBtn.style.display = "none";
+                closeLessonBtn.style.display = "inline-block";
+            } else {
+                alert("Error: " + data.error);
+            }
+        });
+    });
+
+    closeLessonBtn.addEventListener("click", function () {
+        const selectedLessonId = lessonSelect.value;
+
+        fetch("{% url 'academy:close_lesson' %}", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "X-CSRFToken": getCsrfToken() },
+            body: JSON.stringify({ lesson_id: selectedLessonId }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                updateAttendanceButtons(selectedLessonId, false);
+                closeLessonBtn.style.display = "none";
+                startLessonBtn.style.display = "inline-block";
+            } else {
+                alert("Error: " + data.error);
+            }
+        });
+    });
+
+    lessonSelect.addEventListener("change", function () {
+        updateAttendanceButtons(lessonSelect.value, false);
+    });
+
+    document.querySelectorAll(".attendance-btn").forEach(button => {
+        button.addEventListener("click", function () {
+            const studentId = this.getAttribute("data-student-id");
+            const lessonId = this.getAttribute("data-lesson-id");
+
+            if (lessonId === lessonSelect.value) {
+                toggleAttendance(this, studentId, lessonId);
+            }
+        });
+    });
+
+    updateAttendanceButtons(lessonSelect.value, false);
+});
+</script>
+
 </body>
 </html>

@@ -18,9 +18,10 @@ class Lesson(models.Model):
     group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name="lessons")
     date = models.DateField()
     number = models.IntegerField()  # Lesson number (1-12)
+    closed = models.BooleanField(default=False)  # Lock attendance when closed
 
     def __str__(self):
-        return self.group.name + " | lesson " + str(self.number)
+        return f"{self.group.name} | Lesson {self.number}"
 
 class Attendance(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name="attendances")
