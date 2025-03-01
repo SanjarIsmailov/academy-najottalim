@@ -1,0 +1,235 @@
+{% load custom_filters %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+
+        h2 {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 900px;
+            margin: auto;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            overflow-x: auto;
+        }
+
+        select {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        /* Table Styling */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            overflow-x: auto;
+        }
+
+        th, td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            text-align: center;
+            white-space: nowrap; /* Prevents wrapping */
+        }
+
+        th {
+            background-color: #007BFF;
+            color: white;
+            font-size: 14px;
+        }
+
+        td {
+            font-size: 14px;
+        }
+
+        /* Student name column - slightly wider */
+        td:first-child {
+            min-width: 150px;
+            text-align: left;
+            padding-left: 15px;
+        }
+
+        /* Attendance buttons */
+        .present, .absent {
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            border: none;
+            font-size: 16px;
+            width: 50px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease-in-out;
+        }
+
+        /* Colors for buttons */
+        .present {
+            background-color: green;
+            color: white;
+        }
+
+        .absent {
+            background-color: red;
+            color: white;
+        }
+
+        /* Hover effects */
+        .present:hover, .absent:hover {
+            opacity: 0.8;
+        }
+
+        /* Update button */
+        .update-btn {
+            background: linear-gradient(135deg, #007BFF, #0056b3);
+            color: white;
+            padding: 12px 25px;
+            font-weight: bold;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease-in-out;
+            box-shadow: 0 4px 10px rgba(0, 91, 187, 0.5);
+            font-size: 16px;
+        }
+
+        .update-btn:hover {
+            background: linear-gradient(135deg, #0056b3, #003d80);
+            box-shadow: 0 6px 12px rgba(0, 91, 187, 0.7);
+        }
+
+        .update-btn:active {
+            transform: translateY(3px);
+            box-shadow: 0 2px 6px rgba(0, 91, 187, 0.9);
+        }
+
+        /* Responsive Design */
+        @media screen and (max-width: 768px) {
+            h2 {
+                font-size: 18px;
+            }
+
+            table {
+                font-size: 12px;
+            }
+
+            td:first-child {
+                min-width: 120px;
+            }
+
+            .present, .absent {
+                width: 40px;
+                height: 35px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Attendance
+            <button class="update-btn" onclick="saveAttendance()">Save</button>
+        </h2>
+
+        <form method="GET">
+            <label for="group">Select Group:</label>
+            <select name="group_id" id="group" onchange="this.form.submit()">
+                {% for group in groups %}
+                    <option value="{{ group.id }}" {% if group.id == selected_group_id %}selected{% endif %}>
+                        {{ group.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </form>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Student Name</th>
+                    {% for lesson in lessons %}
+                        <th>Lesson {{ lesson.number }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for student in students %}
+                    <tr>
+                        <td>{{ student.name }}</td>
+                        {% for lesson in lessons %}
+                            <td>
+                                <button type="button" onclick="toggleAttendance(this, {{ student.id }}, {{ lesson.id }})"
+                                    class="{% if attendance_data|get_item:student.id|get_item:lesson.id %}present{% else %}absent{% endif %}">
+                                    {% if attendance_data|get_item:student.id|get_item:lesson.id %}✔{% else %}✖{% endif %}
+                                </button>
+                            </td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        let attendanceUpdates = {};
+
+        function toggleAttendance(button, studentId, lessonId) {
+            let present = button.classList.contains("present");
+
+            if (present) {
+                button.classList.remove("present");
+                button.classList.add("absent");
+                button.innerHTML = "✖";
+                attendanceUpdates[`${studentId}-${lessonId}`] = false;
+            } else {
+                button.classList.remove("absent");
+                button.classList.add("present");
+                button.innerHTML = "✔";
+                attendanceUpdates[`${studentId}-${lessonId}`] = true;
+            }
+        }
+
+        function saveAttendance() {
+            fetch(`/academy/update_attendance/`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": "{{ csrf_token }}"
+                },
+                body: JSON.stringify(attendanceUpdates)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert("Attendance updated successfully!");
+                    attendanceUpdates = {}; // Clear updates after saving
+                } else {
+                    alert("Failed to update attendance.");
+                }
+            });
+        }
+    </script>
+</body>
+</html>
