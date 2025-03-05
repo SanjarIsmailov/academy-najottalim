@@ -52,6 +52,14 @@
             background-color: #218838;
         }
 
+        .btn-register {
+            background-color: #007bff;
+        }
+
+        .btn-register:hover {
+            background-color: #0056b3;
+        }
+
         .btn-logout {
             background-color: #dc3545;
         }
@@ -61,27 +69,33 @@
         }
 
         .btn-attendance {
-            background-color: #007bff;
+            background-color: #ff9800;
         }
 
         .btn-attendance:hover {
-            background-color: #0056b3;
+            background-color: #e68900;
         }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h2>Welcome, {{ request.user.phone_number }}</h2>
+        {% if request.user.is_authenticated %}
+            <h2>Welcome, {{ request.user.phone_number }}</h2>
 
-        <div class="buttons">
-            {% if request.user.is_authenticated %}
+            <div class="buttons">
                 <a href="{% url 'logout' %}" class="btn btn-logout">Logout</a>
                 <a href="{% url 'academy:attendance_page' %}" class="btn btn-attendance">Mark Attendance</a>
-            {% else %}
+            </div>
+        {% else %}
+            <h2>Welcome to Our Platform</h2>
+            <p>Please register or login to continue.</p>
+
+            <div class="buttons">
                 <a href="{% url 'login' %}" class="btn btn-login">Login</a>
-            {% endif %}
-        </div>
+                <a href="{% url 'register' %}" class="btn btn-register">Register</a>
+            </div>
+        {% endif %}
     </div>
 
 </body>
