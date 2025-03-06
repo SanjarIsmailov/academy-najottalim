@@ -11,7 +11,7 @@ The **Academy Attendance Management System** is a Django-based web application d
 
 ## Technologies Used
 - **Backend:** Django, Django REST Framework
-- **Database:** SQLite / PostgreSQL (configurable)
+- **Database:** PostgreSQL (configurable)
 - **Frontend:** HTML, CSS, JavaScript (optional for dynamic UI)
 - **Authentication:** Custom user model with `phone_number` and `date_of_birth`
 
