@@ -18,8 +18,8 @@ class Student(models.Model):
 class Lesson(models.Model):
     group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name="lessons")
     date = models.DateField()
-    number = models.IntegerField()  # Lesson number (1-12)
-    closed = models.BooleanField(default=False)  # Lock attendance when closed
+    number = models.IntegerField()
+    closed = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.group.name} | Lesson {self.number}"
@@ -27,7 +27,7 @@ class Lesson(models.Model):
 class Attendance(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name="attendances")
     lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name="attendances")
-    status = models.BooleanField(default=False)  # True = Present, False = Absent
+    status = models.BooleanField(default=False)
 
     class Meta:
-        unique_together = ('student', 'lesson')  # Ensure no duplicate attendance per lesson
+        unique_together = ('student', 'lesson')
