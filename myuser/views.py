@@ -36,7 +36,7 @@ class CustomRegisterView(View):
             return redirect("register")
 
         user = CustomUser.objects.create_user(phone_number=phone_number, email=email, password=password)
-        login(request, user)  # Auto-login after registration
+        login(request, user)
         messages.success(request, "Registration successful! You are now logged in.")
         return redirect("home")
 
@@ -60,7 +60,7 @@ class CustomLoginView(View):
             except CustomUser.DoesNotExist:
                 messages.error(request, "Invalid email or password.")
                 return redirect("login")
-        else:  # Otherwise, treat it as a phone number
+        else:
             try:
                 user = CustomUser.objects.get(phone_number=identifier)
             except CustomUser.DoesNotExist:
